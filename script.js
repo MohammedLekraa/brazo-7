@@ -2,7 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-  if (window.Chart) { Chart.defaults.font.family = "'Space Mono',monospace"; Chart.defaults.font.size = 11; Chart.defaults.color = '#6f6a5e'; Chart.defaults.borderColor = '#e4ddcd'; }
+  if (window.Chart) { Chart.defaults.font.family = "'JetBrains Mono',monospace"; Chart.defaults.font.size = 11; Chart.defaults.color = '#6f6a5e'; Chart.defaults.borderColor = '#e4ddcd'; }
+
+  /* Imatges que falten: es marquen en lloc de mostrar la icona trencada */
+  $$('img').forEach(i => {
+    const mark = () => i.setAttribute('data-missing', '');
+    i.addEventListener('error', mark);
+    if (i.complete && !i.naturalWidth && i.getAttribute('src')) mark();
+  });
 
   /* Barra de progrés */
   const bar = $('#progress');
@@ -13,8 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
   /* Índex lateral */
-  const toc = document.createElement('nav'); toc.className = 'tocbar'; toc.innerHTML = $('.side-in').innerHTML; $('.nav').insertBefore(toc, $('.nav .btn'));
-  const links = $$('.side-in a, .tocbar a');
+  const links = $$('.side-in a');
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) document.dispatchEvent(new CustomEvent('sec', { detail: e.target.id }));
     if (e.isIntersecting) links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
@@ -60,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* Gràfica ADC vs angle (Taula 4 de la memòria) */
   if (window.Chart) new Chart($('#chart'), {
     type: 'scatter',
-    data: { datasets: [{ data: [[0, 2317], [45, 2143], [90, 1993], [135, 1824], [180, 1633]].map(([x, y]) => ({ x, y })), showLine: true, borderColor: '#0e6b66', backgroundColor: '#0e6b66', pointRadius: 4 }] },
+    data: { datasets: [{ data: [[0, 2317], [45, 2143], [90, 1993], [135, 1824], [180, 1633]].map(([x, y]) => ({ x, y })), showLine: true, borderColor: '#111111', backgroundColor: '#111111', pointRadius: 4 }] },
     options: { plugins: { legend: { display: false } }, scales: { x: { title: { display: true, text: 'Angle del dit (°)' } }, y: { title: { display: true, text: 'Lectura ADC' } } } }
   });
 
@@ -85,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* Gràfics dels sensors */
   if (window.Chart) {
-    const ink = '#0f1a1c', acc = '#0e6b66', teal = '#7c5cff', sand = '#cfc8b8';
+    const ink = '#111111', acc = '#111111', teal = '#111111', sand = '#cfc8b8';
     const D = { r: [36066, 42811, 49570, 58518, 70860], v: [1.87, 1.73, 1.61, 1.47, 1.32] }, L = { r: 'Rflex (Ω)', v: 'Vout (V)' };
     const multi = new Chart($('#c-multi'), { type: 'line', data: { labels: [0, 45, 90, 135, 180], datasets: [{ data: D.r, borderColor: acc, backgroundColor: acc, tension: .25, pointRadius: 5 }] },
       options: { plugins: { legend: { display: false } }, scales: { x: { title: { display: true, text: 'Angle del dit (°)' } }, y: { title: { display: true, text: L.r } } } } });
@@ -107,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fuse = a => { let f = 0; return th.map((v, k) => f = a * (f + (k ? v - th[k - 1] : 0) + .06) + (1 - a) * ac[k]); };
     const ds = (label, data, c, w, extra = {}) => ({ label, data, borderColor: c, borderWidth: w, pointRadius: 0, ...extra });
     const sim = new Chart($('#c-sim'), { type: 'line', data: { labels: th.map((_, k) => Math.round(k * dt)), datasets: [
-      ds('Angle real', th, ink, 1.5, { borderDash: [4, 4] }), ds('Només giroscopi', gyro, acc, 1.5), ds('Només acceleròmetre', ac, sand, 1), ds('Filtre complementari', fuse(.98), teal, 2.5)] },
+      ds('Angle real', th, '#a9a597', 1.5, { borderDash: [4, 4] }), ds('Només giroscopi', gyro, '#6b675c', 1.5), ds('Només acceleròmetre', ac, sand, 1), ds('Filtre complementari', fuse(.98), teal, 2.5)] },
       options: { animation: false, plugins: { legend: { position: 'bottom' } }, scales: { x: { ticks: { maxTicksLimit: 8 }, title: { display: true, text: 'Temps (s)' } }, y: { title: { display: true, text: 'Angle (°)' } } } } });
     const al = $('#al');
     al.addEventListener('input', () => { $('#al-v').textContent = (+al.value).toFixed(2); sim.data.datasets[3].data = fuse(+al.value); sim.update('none'); });
